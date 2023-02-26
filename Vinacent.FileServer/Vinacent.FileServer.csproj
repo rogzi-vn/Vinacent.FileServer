@@ -15,6 +15,7 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <Content Update="appsettings.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>
