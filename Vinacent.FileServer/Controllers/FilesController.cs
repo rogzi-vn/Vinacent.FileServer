@@ -42,16 +42,7 @@ namespace Vinacent.FileServer.Controllers
         [HttpPost("/root-project")]
         public async Task<RootProject> CreateOrUpdateRootProject(RootProject input)
         {
-            if (input.Id == Guid.Empty)
-            {
-                input = await _fileProcessAppService.CreateRootProject(input);
-            }
-            else
-            {
-                input = await _fileProcessAppService.UpdateRootProject(input);
-            }
-
-            return input;
+            return await _fileProcessAppService.SyncRootProject(input);
         }
 
         [HttpGet("/files/{id:guid}")]

@@ -68,18 +68,55 @@ namespace Vinacent.FileServer.Abstracts
             };
         }
 
-        public async Task<RootProject> CreateRootProject(RootProject input)
+        public async Task<RootProject> SyncRootProject(RootProject input)
         {
-
-            input = new RootProject
+            if (input.Id == Guid.Empty)
             {
-                Id = Guid.NewGuid(),
-                Name = input.Name,
-                Description = input.Description,
-                CreationTime = DateTime.Now
-            };
+                throw new Exception("Please give unique Id!!");
+            }
 
-            _dbContext.RootProjects.Add(input);
+            if (string.IsNullOrEmpty(input.Name))
+            {
+                throw new Exception("Please give project name!!");
+            }
+
+            var entity = await _dbContext.RootProjects.FirstOrDefaultAsync(x => x.Id == input.Id);
+
+            if (entity == null)
+            {
+                // Create
+                var previous = await _dbContext.RootProjects.FirstOrDefaultAsync(x => x.Name.ToLower() == input.Name.ToLower());
+                if (previous != null)
+                {
+                    throw new Exception("Project with that name was existed!");
+                }
+
+                input = new RootProject
+                {
+                    Id = input.Id,
+                    Name = input.Name,
+                    Description = input.Description,
+                    CreationTime = DateTime.Now
+                };
+
+                _dbContext.RootProjects.Add(input);
+            }
+            else
+            {
+                // Update
+                var previous = await _dbContext.RootProjects.FirstOrDefaultAsync(x => x.Id != entity.Id && x.Name.ToLower() == entity.Name.ToLower());
+                if (previous != null)
+                {
+                    throw new Exception("Project with that name was existed!");
+                }
+
+                entity.Name = input.Name;
+                entity.Description = input.Description;
+                entity.ModificationTime = DateTime.Now;
+
+                _dbContext.RootProjects.Update(entity);
+            }
+
             await _dbContext.SaveChangesAsync();
             return input;
         }
@@ -120,30 +157,6 @@ namespace Vinacent.FileServer.Abstracts
             await _dbContext.SaveChangesAsync();
 
             return GetFileDownload(fi);
-        }
-
-        public async Task<RootProject> UpdateRootProject(RootProject input)
-        {
-            if (input.Id == Guid.Empty)
-            {
-                throw new Exception("No Id");
-            }
-
-            var entity = await _dbContext.RootProjects.FirstOrDefaultAsync(x => x.Id == input.Id);
-
-            if (entity == null)
-            {
-                throw new Exception("Null");
-            }
-
-            entity.Name = input.Name;
-            entity.Description = input.Description;
-            entity.ModificationTime = DateTime.Now;
-
-            _dbContext.RootProjects.Update(entity);
-            await _dbContext.SaveChangesAsync();
-
-            return input;
         }
 
         public async Task<FileDownloadDto> Upload(FileUploadDto input)

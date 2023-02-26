@@ -5,8 +5,7 @@ namespace Vinacent.FileServer.Interfaces
 {
     public interface IFileProcessAppService
     {
-        Task<RootProject> CreateRootProject(RootProject input);
-        Task<RootProject> UpdateRootProject(RootProject input);
+        Task<RootProject> SyncRootProject(RootProject input);
         Task<FileDownloadDto> Upload(FileUploadDto input);
         Task<FileDownloadDto> UpdateDetail(FileDetailUpdateDto input);
         Task<FileItem> GetFileItem(Guid fileId);
