@@ -184,7 +184,6 @@ namespace Vinacent.FileServer.Abstracts
                 using var fs = File.Create(serverFilePath);
                 await input.File.CopyToAsync(fs);
                 fs.Close();
-                await fs.FlushAsync();
 
                 _dbContext.FileItems.Add(fileItem);
                 await _dbContext.SaveChangesAsync();

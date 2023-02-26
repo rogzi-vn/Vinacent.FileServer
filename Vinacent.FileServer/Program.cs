@@ -19,6 +19,17 @@ builder.Services.AddDbContext<FileServerDbContext>(x => x.UseSqlServer(connectio
 // Add DI
 builder.Services.AddTransient<IFileProcessAppService, FileProcessAppService>();
 
+// CORS
+var corsPolicyName = "CORS_Policy";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(corsPolicyName, builder => {
+        builder.WithOrigins("https://localhost:44312").AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        //builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "vinacent.com");
+        //builder.SetIsOriginAllowed(origin => true);
+    });
+});
 
 var app = builder.Build();
 
@@ -28,6 +39,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(corsPolicyName);
 
 app.UseHttpsRedirection();
 
