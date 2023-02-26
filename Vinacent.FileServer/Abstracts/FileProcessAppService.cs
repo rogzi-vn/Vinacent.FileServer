@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Vinacent.FileServer.Controllers;
 using Vinacent.FileServer.Data;
 using Vinacent.FileServer.Data.Dto;
 using Vinacent.FileServer.Data.Models;
@@ -11,25 +12,29 @@ namespace Vinacent.FileServer.Abstracts
     {
         private readonly FileServerDbContext _dbContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<FileProcessAppService> _logger;
 
-        public FileProcessAppService(FileServerDbContext dbContext, IWebHostEnvironment webHostEnvironment)
+        public FileProcessAppService(FileServerDbContext dbContext, IWebHostEnvironment webHostEnvironment, ILogger<FileProcessAppService> logger)
         {
             _dbContext = dbContext;
             _webHostEnvironment = webHostEnvironment;
+            _logger = logger;
         }
 
         private string GetTodayFileFolder()
         {
-            var storagePath = Directory.GetParent(_webHostEnvironment.ContentRootPath)?.FullName;
-            if (string.IsNullOrEmpty(storagePath))
+            var storagePath = Path.Combine(_webHostEnvironment.ContentRootPath, "DataLakeOfFiles", DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString());
+            try
             {
-                throw new Exception("Null");
+                if (!Directory.Exists(storagePath))
+                {
+                    Directory.CreateDirectory(storagePath);
+                }
             }
-
-            storagePath = Path.Combine(storagePath, DateTime.Now.Year.ToString(), DateTime.Now.Month.ToString(), DateTime.Now.Day.ToString());
-            if (!Directory.Exists(storagePath))
+            catch (Exception ex)
             {
-                Directory.CreateDirectory(storagePath);
+                _logger.LogError($"Try to create [{storagePath}] faild!", ex);
+                throw;
             }
 
             return storagePath;
@@ -174,9 +179,16 @@ namespace Vinacent.FileServer.Abstracts
                 CreationTime = DateTime.Now,
             };
 
-            await input.File.CopyToAsync(File.Create(serverFilePath));
-            _dbContext.FileItems.Add(fileItem);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                await input.File.CopyToAsync(File.Create(serverFilePath));
+                _dbContext.FileItems.Add(fileItem);
+                await _dbContext.SaveChangesAsync();
+            } catch(Exception ex)
+            {
+                _logger.LogError($"Try to save file [{serverFilePath}]", ex);
+                throw;
+            }
 
             return GetFileDownload(fileItem);
         }

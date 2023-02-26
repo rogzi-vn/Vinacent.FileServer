@@ -39,7 +39,7 @@ namespace Vinacent.FileServer.Controllers
             await _dbContext.SaveChangesAsync();
         }
 
-        [HttpPost("/root-project")]
+        [HttpPost("/api/root-project")]
         public async Task<RootProject> CreateOrUpdateRootProject(RootProject input)
         {
             return await _fileProcessAppService.SyncRootProject(input);
@@ -52,17 +52,23 @@ namespace Vinacent.FileServer.Controllers
             {
                 var fileItem = await _fileProcessAppService.GetFileItem(id);
                 await SaveLog(id);
-                return File(System.IO.File.OpenRead(fileItem.PhysicalServerPath), "application/octet-stream", fileItem.FileName);
+                try
+                {
+                    return File(System.IO.File.OpenRead(fileItem.PhysicalServerPath), "application/octet-stream", fileItem.FileName);
+                } catch (Exception ex)
+                {
+                    throw;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(nameof(PublicDownload), ex);
+                _logger.LogError(ex.StackTrace, ex);
                 return NotFound();
             }
         }
 
         [HttpPost("upload")]
-        public async Task<FileDownloadDto> PrivateUpload([FromForm] FileUploadDto dto)
+        public async Task<IActionResult> PrivateUpload([FromForm] FileUploadDto dto)
         {
             try
             {
@@ -70,14 +76,18 @@ namespace Vinacent.FileServer.Controllers
                 if (result != null && result.FileItemId != Guid.Empty)
                 {
                     await SaveLog(result!.FileItemId!.Value);
-                    return result;
+                    return new JsonResult(result);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(nameof(PublicDownload), ex);
+                _logger.LogError(ex.StackTrace, ex);
+                Response.StatusCode = 500;
+                return new JsonResult(ex.Message);
             }
-            return new FileDownloadDto();
+
+            Response.StatusCode = 500;
+            return new EmptyResult();
         }
 
         [HttpPost("update-detail")]
@@ -91,7 +101,7 @@ namespace Vinacent.FileServer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(nameof(PublicDownload), ex);
+                _logger.LogError(ex.StackTrace, ex);
                 return new FileDownloadDto();
             }
         }
@@ -107,7 +117,7 @@ namespace Vinacent.FileServer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(nameof(PublicDownload), ex);
+                _logger.LogError(ex.StackTrace, ex);
                 return new FileDownloadDto();
             }
         }
