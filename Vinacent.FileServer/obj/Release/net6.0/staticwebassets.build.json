@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "EWf5InEVOaZvuSvY9HoDcwyniXr7gonU75Qr5R6Vqpg=",
+  "Source": "Vinacent.FileServer",
+  "BasePath": "_content/Vinacent.FileServer",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
