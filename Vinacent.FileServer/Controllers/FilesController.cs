@@ -52,13 +52,8 @@ namespace Vinacent.FileServer.Controllers
             {
                 var fileItem = await _fileProcessAppService.GetFileItem(id);
                 await SaveLog(id);
-                try
-                {
-                    return File(System.IO.File.OpenRead(fileItem.PhysicalServerPath), "application/octet-stream", fileItem.FileName);
-                } catch (Exception ex)
-                {
-                    throw;
-                }
+                using var fs = System.IO.File.OpenRead(fileItem.PhysicalServerPath);
+                return File(fs, "application/octet-stream", fileItem.FileName);
             }
             catch (Exception ex)
             {
