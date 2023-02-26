@@ -106,7 +106,7 @@ namespace Vinacent.FileServer.Controllers
             }
         }
 
-        [HttpDelete("remove")]
+        [HttpDelete("remove/{id:guid}")]
         public async Task<FileDownloadDto> PrivateRemove(Guid id)
         {
             try
